@@ -27,7 +27,6 @@ export class SqsService implements OnModuleInit {
   }
 
   onModuleInit() {
-    // Start polling for responses when service initializes
     this.startResponsePolling();
   }
 
@@ -60,15 +59,12 @@ export class SqsService implements OnModuleInit {
       await this.sqs.sendMessage(params).promise();
       console.log(`Event published to ${service} queue:`, event);
 
-      // Return a promise that will resolve when response is received
       return new Promise((resolve, reject) => {
-        // Set timeout to prevent hanging requests
         const timeout = setTimeout(() => {
           this.pendingRequests.delete(event.correlationId);
           reject(new Error('Request timeout - no response received within ' + timeoutMs + 'ms'));
         }, timeoutMs);
 
-        // Store the promise resolvers
         this.pendingRequests.set(event.correlationId, {
           resolve,
           reject,
@@ -126,11 +122,9 @@ export class SqsService implements OnModuleInit {
       const pendingRequest = this.pendingRequests.get(correlationId);
       
       if (pendingRequest) {
-        // Clear timeout
         clearTimeout(pendingRequest.timeout);
         this.pendingRequests.delete(correlationId);
         
-        // Resolve or reject the promise based on response
         if (response.success) {
           pendingRequest.resolve(response);
         } else {
