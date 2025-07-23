@@ -59,8 +59,9 @@ export class SqsService implements OnModuleInit {
 
     try {
       // Send the message to service queue
-
+             await lastValueFrom(this.httpService.get('https://users-service-umber.vercel.app/health'));
       await this.sqs.sendMessage(params).promise();
+
       console.log(`Event published to ${service} queue:`, event);
 
       return new Promise((resolve, reject) => {
