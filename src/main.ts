@@ -1,36 +1,45 @@
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { VercelRequest, VercelResponse } from '@vercel/node';
 import { config } from 'dotenv';
 
 config();
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  
-  app.enableCors();
-  
-  app.setGlobalPrefix('api');
-  
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('Microservices API Gateway')
-    .setDescription('API Gateway for microservices architecture')
-    .setVersion('1.0')
-    .addTag('users')
-    .addTag('orders')
-    .build();
-  
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('docs', app, document);
-  
-  const port = process.env.PORT || 3000;
-  await app.listen(port, '0.0.0.0');
-  
-  console.log(`API Gateway running on port ${port}`);
-  console.log(`Swagger UI available at /docs`);
+let app: any;
+
+async function createApp() {
+  if (!app) {
+    app = await NestFactory.create(AppModule);
+    
+    app.enableCors();
+    app.setGlobalPrefix('api');
+    
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('Microservices API Gateway')
+      .setDescription('API Gateway for microservices architecture')
+      .setVersion('1.0')
+      .addTag('users')
+      .addTag('orders')
+      .build();
+    
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('docs', app, document);
+    
+    await app.init();
+  }
+  return app;
 }
 
-bootstrap().catch(err => {
-  console.error('Failed to start application:', err);
-  process.exit(1);
-});
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  try {
+    const app = await createApp();
+    const expressApp = app.getHttpAdapter().getInstance();
+    
+    // Handle the request using Express
+    return expressApp(req, res);
+  } catch (error) {
+    console.error('Handler error:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
