@@ -1,6 +1,8 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { SQS } from 'aws-sdk';
 import { config } from 'dotenv';
+import { HttpService } from '@nestjs/axios';
+import { lastValueFrom } from 'rxjs';
 config();
 @Injectable()
 export class SqsService implements OnModuleInit {
@@ -18,7 +20,7 @@ export class SqsService implements OnModuleInit {
     timeout: NodeJS.Timeout;
   }>();
 
-  constructor() {
+  constructor(private readonly httpService: HttpService) {
     this.sqs = new SQS({
       region: process.env.AWS_REGION || 'us-east-1',
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -27,6 +29,7 @@ export class SqsService implements OnModuleInit {
   }
 
   onModuleInit() {
+    // Start polling for responses when service initializes
     this.startResponsePolling();
   }
 
@@ -35,6 +38,8 @@ export class SqsService implements OnModuleInit {
     event: any, 
     timeoutMs: number = 30000
   ): Promise<any> {
+        const healthResponse = await lastValueFrom(this.httpService.get('https://users-service-umber.vercel.app/health'));
+        console.log(healthResponse);
     const params = {
       QueueUrl: this.queueUrls[service],
       MessageBody: JSON.stringify(event),
