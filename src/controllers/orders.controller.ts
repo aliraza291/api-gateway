@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Response } from 'express';
 import { SqsService } from '../services/sqs.service';
 import { v4 as uuidv4 } from 'uuid';
-import { CreateOrderDto, UpdateOrderDto } from '@/dto/order.dto';
+import { CreateOrderDto, UpdateOrderDto } from '../dto/order.dto';
 
 @ApiTags('orders')
 @Controller('orders')
