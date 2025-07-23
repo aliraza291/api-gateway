@@ -38,7 +38,7 @@ export class SqsService implements OnModuleInit {
     event: any, 
     timeoutMs: number = 30000
   ): Promise<any> {
-       this.httpService.get('https://users-service-umber.vercel.app/health');
+       await lastValueFrom(this.httpService.get('https://users-service-umber.vercel.app/health'));
     const params = {
       QueueUrl: this.queueUrls[service],
       MessageBody: JSON.stringify(event),
