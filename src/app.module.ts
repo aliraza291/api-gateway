@@ -4,9 +4,10 @@ import { AppService } from './app.service';
 import { UsersController } from './controllers/users.controller';
 import { OrdersController } from './controllers/orders.controller';
 import { SqsService } from './services/sqs.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [],
+  imports: [HttpModule],
   controllers: [AppController, UsersController, OrdersController],
   providers: [AppService,SqsService],
 })
